@@ -83,9 +83,11 @@ abstract class AbstractSyncer implements EntitySyncer
         $attributes = $this->transform($payload, $store);
         $hash = hash('sha256', json_encode($payload, JSON_THROW_ON_ERROR));
 
-        /** @var Model $local */
-        $local = $mapping?->mappable
-            ?: new $modelClass;
+        $local = $this->resolveLocal($mapping, $modelClass);
+
+        if (! $local->exists) {
+            $this->applyTenant($local, $store);
+        }
 
         $this->beforeFill($local, $payload, $store);
         $local->fill($attributes);
@@ -114,6 +116,41 @@ abstract class AbstractSyncer implements EntitySyncer
     protected function beforeFill(Model $local, array $payload, WooStore $store): void {}
 
     protected function afterSave(Model $local, array $payload, WooStore $store): void {}
+
+    /**
+     * Resolve the local Eloquent model for an existing mapping, optionally
+     * bypassing global scopes so tenant-scoped traits don't hide rows when
+     * sync runs outside of an authenticated tenant context.
+     *
+     * @param  class-string<Model>  $modelClass
+     */
+    protected function resolveLocal(?WooMapping $mapping, string $modelClass): Model
+    {
+        if ($mapping === null || $mapping->mappable_id === null) {
+            return new $modelClass;
+        }
+
+        $query = $modelClass::query();
+        if ((bool) config('filament-woocommerce.tenant.bypass_global_scopes', true)) {
+            $query->withoutGlobalScopes();
+        }
+
+        return $query->find($mapping->mappable_id) ?: new $modelClass;
+    }
+
+    /**
+     * Populate the tenant column on a newly-created local model when the
+     * store has a tenant_id and a tenant.column is configured.
+     */
+    protected function applyTenant(Model $local, WooStore $store): void
+    {
+        $column = config('filament-woocommerce.tenant.column');
+        if ($column === null || $store->tenant_id === null) {
+            return;
+        }
+
+        $local->{$column} = $store->tenant_id;
+    }
 
     protected function isEnabled(): bool
     {

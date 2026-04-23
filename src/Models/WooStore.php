@@ -18,6 +18,7 @@ use Illuminate\Support\Carbon;
  * @property string $consumer_secret
  * @property string $api_version
  * @property bool $is_active
+ * @property int|null $tenant_id
  * @property array<string, mixed>|null $settings
  * @property Carbon|null $last_sync_at
  */
@@ -38,6 +39,7 @@ final class WooStore extends Model
     {
         return [
             'is_active' => 'boolean',
+            'tenant_id' => 'integer',
             'settings' => 'array',
             'consumer_key' => 'encrypted',
             'consumer_secret' => 'encrypted',

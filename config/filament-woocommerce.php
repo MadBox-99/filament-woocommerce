@@ -76,6 +76,35 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Multi-tenant support
+    |--------------------------------------------------------------------------
+    |
+    | When the host application scopes its models by a tenant (team, account,
+    | organization, …), each WooStore can be assigned a tenant_id. The syncer
+    | then auto-populates the configured column on newly created records and
+    | bypasses global scopes when resolving existing ones — so sync jobs work
+    | outside of an authenticated tenant context.
+    |
+    | - column: the column name on host models (e.g. 'team_id'). Null disables
+    |           the feature entirely, leaving v0.1 behavior intact.
+    | - model:  optional Eloquent model used to render a Select in the store
+    |           form, letting admins pick a tenant. Null falls back to a plain
+    |           numeric input.
+    | - label_column: column on the tenant model to display in the Select.
+    | - bypass_global_scopes: when true, mapping lookups skip global scopes so
+    |           BelongsToTeam-style traits don't hide rows from queue workers.
+    |
+    */
+
+    'tenant' => [
+        'column' => env('WOO_TENANT_COLUMN'),
+        'model' => null,
+        'label_column' => 'name',
+        'bypass_global_scopes' => true,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Queue
     |--------------------------------------------------------------------------
     */
