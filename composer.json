@@ -1,0 +1,63 @@
+{
+    "name": "madbox-99/filament-woocommerce",
+    "description": "WooCommerce integration plugin for Filament v5 — sync WooCommerce products, categories, customers, and orders into any Laravel/Filament CRM via configurable model mapping. Multi-store capable.",
+    "type": "library",
+    "keywords": [
+        "laravel",
+        "filament",
+        "filament-plugin",
+        "woocommerce",
+        "woo",
+        "ecommerce",
+        "sync",
+        "crm",
+        "wordpress"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Zoltán Tamás Szabó",
+            "email": "zoli.szabok@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.3",
+        "laravel/framework": "^11.0 || ^12.0 || ^13.0",
+        "filament/filament": "^4.0 || ^5.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0 || ^10.0 || ^11.0",
+        "pestphp/pest": "^3.0 || ^4.0",
+        "pestphp/pest-plugin-laravel": "^3.0 || ^4.0",
+        "laravel/pint": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Madbox99\\FilamentWooCommerce\\": "src/",
+            "Madbox99\\FilamentWooCommerce\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Madbox99\\FilamentWooCommerce\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Madbox99\\FilamentWooCommerce\\FilamentWooCommerceServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "test": "pest",
+        "lint": "pint"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}
