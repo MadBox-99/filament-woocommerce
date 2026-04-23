@@ -26,21 +26,27 @@ final class CustomerSyncer extends AbstractSyncer
         ];
     }
 
+    /**
+     * Enrich the WooCommerce payload before the generic field_map runs so
+     * billing fallbacks and a synthetic `full_name` become available to any
+     * host-column the user maps them to. We never inject output columns —
+     * the final shape is always controlled by config field_map.
+     */
     protected function transform(array $payload, WooStore $store): array
     {
-        $data = parent::transform($payload, $store);
-
         $billing = (array) ($payload['billing'] ?? []);
-        if (! isset($data['first_name']) && isset($billing['first_name'])) {
-            $data['first_name'] = $billing['first_name'];
-        }
-        if (! isset($data['last_name']) && isset($billing['last_name'])) {
-            $data['last_name'] = $billing['last_name'];
-        }
-        if (! isset($data['phone']) && isset($billing['phone'])) {
-            $data['phone'] = $billing['phone'];
+
+        foreach (['first_name', 'last_name', 'phone', 'email'] as $key) {
+            if (empty($payload[$key]) && ! empty($billing[$key])) {
+                $payload[$key] = $billing[$key];
+            }
         }
 
-        return $data;
+        $fullName = trim(($payload['first_name'] ?? '').' '.($payload['last_name'] ?? ''));
+        if ($fullName !== '') {
+            $payload['full_name'] = $fullName;
+        }
+
+        return parent::transform($payload, $store);
     }
 }
