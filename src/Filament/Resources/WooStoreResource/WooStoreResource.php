@@ -22,6 +22,15 @@ final class WooStoreResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingBag;
 
+    /**
+     * WooStores aren't scoped by Filament's per-request tenant because the
+     * plugin manages its own tenant_id column — and the WooStore model has
+     * no relationship matching the host panel's tenant (e.g. `team`).
+     * Auto-scoping would raise a LogicException when the panel uses
+     * `->tenant(Team::class)`.
+     */
+    protected static bool $isScopedToTenant = false;
+
     public static function getNavigationGroup(): ?string
     {
         return (string) config('filament-woocommerce.filament.navigation_group', 'WooCommerce');
