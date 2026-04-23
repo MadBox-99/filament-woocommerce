@@ -18,6 +18,13 @@ final class WooSyncLogResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
+    /**
+     * Sync logs belong to a WooStore (not directly to a tenant) and the plugin
+     * filters by store explicitly, so Filament's auto tenant scoping would
+     * raise a LogicException when the host panel enables `->tenant()`.
+     */
+    protected static bool $isScopedToTenant = false;
+
     public static function getNavigationGroup(): ?string
     {
         return (string) config('filament-woocommerce.filament.navigation_group', 'WooCommerce');
