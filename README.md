@@ -7,6 +7,7 @@ WooCommerce integration plugin for Filament v5. Pulls **products + categories**,
 - PHP 8.3+
 - One-way sync: WooCommerce → host app
 - Multi-store: manage several WooCommerce stores from one Filament panel
+- Multi-tenant friendly: auto-populate `team_id` / `organization_id` / any tenant column on synced records
 
 ## Installation
 
@@ -61,6 +62,22 @@ final class Product extends Model
 ```
 
 `HasWooMapping` adds a polymorphic relation to the `woo_mappings` table — no extra columns required on your own models.
+
+## Multi-tenant apps
+
+If your host app scopes records by `team_id`, `organization_id`, `account_id`, …, tell the plugin which column to populate and the syncer will fill it on every new record it creates — and skip global scopes when resolving existing mappings, so queue workers can find records without an authenticated tenant context.
+
+```php
+// config/filament-woocommerce.php
+'tenant' => [
+    'column' => 'team_id',              // null disables the feature (default)
+    'model' => \App\Models\Team::class, // optional — renders a Select in the store form
+    'label_column' => 'name',
+    'bypass_global_scopes' => true,
+],
+```
+
+Each store then stores its own `tenant_id`, assigned when you create the store in the UI. The syncer auto-populates `team_id = store.tenant_id` on newly created Products / Customers / Orders — but never overwrites an existing record's tenant.
 
 ## Usage
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Madbox99\FilamentWooCommerce\Filament\Resources\WooStoreResource\Schemas;
 
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
@@ -49,7 +50,34 @@ final class WooStoreForm
                             ->label(__('Active'))
                             ->default(true)
                             ->inline(false),
+                        self::tenantField(),
                     ]),
             ]);
+    }
+
+    private static function tenantField(): Select|TextInput
+    {
+        $tenantColumn = config('filament-woocommerce.tenant.column');
+        $tenantModel = config('filament-woocommerce.tenant.model');
+        $labelColumn = (string) config('filament-woocommerce.tenant.label_column', 'name');
+
+        if ($tenantColumn === null) {
+            return TextInput::make('tenant_id')->hidden();
+        }
+
+        if ($tenantModel !== null && class_exists($tenantModel)) {
+            return Select::make('tenant_id')
+                ->label(__('Tenant'))
+                ->options(fn (): array => $tenantModel::query()
+                    ->pluck($labelColumn, 'id')
+                    ->all())
+                ->searchable()
+                ->required();
+        }
+
+        return TextInput::make('tenant_id')
+            ->label(__('Tenant ID'))
+            ->numeric()
+            ->required();
     }
 }
