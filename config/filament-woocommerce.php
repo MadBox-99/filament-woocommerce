@@ -93,6 +93,12 @@ return [
     | - label_column: column on the tenant model to display in the Select.
     | - bypass_global_scopes: when true, mapping lookups skip global scopes so
     |           BelongsToTeam-style traits don't hide rows from queue workers.
+    | - allow_selection: who may choose the tenant in the store form. Accepts a
+    |           bool, or a class-string of an invokable resolved from the
+    |           container returning bool (config-cache safe — avoid closures).
+    |           When it resolves to false the field is disabled and forced to
+    |           the current panel tenant, so regular users can't reassign a
+    |           store to another team. Defaults to true.
     |
     */
 
@@ -101,6 +107,7 @@ return [
         'model' => null,
         'label_column' => 'name',
         'bypass_global_scopes' => true,
+        'allow_selection' => true,
     ],
 
     /*

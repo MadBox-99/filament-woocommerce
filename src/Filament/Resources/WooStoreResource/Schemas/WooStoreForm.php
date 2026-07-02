@@ -66,21 +66,62 @@ final class WooStoreForm
             return TextInput::make('tenant_id')->hidden();
         }
 
+        $canSelect = self::canSelectTenant();
+        $currentTenantId = static fn (): int|string|null => Filament::getTenant()?->getKey();
+
+        // When the user may not choose, force the value to the current tenant
+        // on save so a disabled field can't be tampered with via Livewire.
+        $forceTenant = static fn (mixed $state): mixed => $canSelect
+            ? $state
+            : ($currentTenantId() ?? $state);
+
         if ($tenantModel !== null && class_exists($tenantModel)) {
             return Select::make('tenant_id')
                 ->label(__('Tenant'))
                 ->options(fn (): array => $tenantModel::query()
                     ->pluck($labelColumn, 'id')
                     ->all())
-                ->default(fn (): int|string|null => Filament::getTenant()?->getKey())
+                ->default($currentTenantId)
                 ->searchable()
-                ->required();
+                ->required()
+                ->disabled(! $canSelect)
+                ->dehydrated()
+                ->dehydrateStateUsing($forceTenant);
         }
 
         return TextInput::make('tenant_id')
             ->label(__('Tenant ID'))
             ->numeric()
-            ->default(fn (): int|string|null => Filament::getTenant()?->getKey())
-            ->required();
+            ->default($currentTenantId)
+            ->required()
+            ->disabled(! $canSelect)
+            ->dehydrated()
+            ->dehydrateStateUsing($forceTenant);
+    }
+
+    /**
+     * Resolve whether the current user may choose a store's tenant.
+     *
+     * Accepts a bool or an invokable class-string (resolved from the
+     * container) so the host can gate selection by role without putting a
+     * closure in config — keeping `config:cache` working.
+     */
+    public static function canSelectTenant(): bool
+    {
+        $allow = config('filament-woocommerce.tenant.allow_selection');
+
+        if ($allow === null) {
+            return true;
+        }
+
+        if (is_string($allow) && class_exists($allow)) {
+            return (bool) app($allow)();
+        }
+
+        if (is_callable($allow)) {
+            return (bool) $allow();
+        }
+
+        return (bool) $allow;
     }
 }
