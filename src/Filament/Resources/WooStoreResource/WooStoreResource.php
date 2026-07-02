@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Madbox99\FilamentWooCommerce\Filament\Resources\WooStoreResource;
 
 use BackedEnum;
+use Filament\Facades\Filament;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Madbox99\FilamentWooCommerce\Filament\Resources\WooStoreResource\Pages\CreateWooStore;
 use Madbox99\FilamentWooCommerce\Filament\Resources\WooStoreResource\Pages\EditWooStore;
 use Madbox99\FilamentWooCommerce\Filament\Resources\WooStoreResource\Pages\ListWooStores;
@@ -27,9 +29,23 @@ final class WooStoreResource extends Resource
      * plugin manages its own tenant_id column — and the WooStore model has
      * no relationship matching the host panel's tenant (e.g. `team`).
      * Auto-scoping would raise a LogicException when the panel uses
-     * `->tenant(Team::class)`.
+     * `->tenant(Team::class)`. Scoping is applied manually in
+     * getEloquentQuery() using that tenant_id column instead.
      */
     protected static bool $isScopedToTenant = false;
+
+    /**
+     * Scope the store list to the panel's current tenant using the plugin's
+     * own tenant_id column. Falls back to every store when the panel has no
+     * tenancy, keeping the plugin usable in single-tenant apps.
+     *
+     * @return Builder<WooStore>
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->forTenant(Filament::getTenant()?->getKey());
+    }
 
     public static function getNavigationGroup(): ?string
     {

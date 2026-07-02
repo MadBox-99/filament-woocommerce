@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Madbox99\FilamentWooCommerce\Filament\Resources\WooStoreResource\Schemas;
 
+use Filament\Facades\Filament;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -71,6 +72,7 @@ final class WooStoreForm
                 ->options(fn (): array => $tenantModel::query()
                     ->pluck($labelColumn, 'id')
                     ->all())
+                ->default(fn (): int|string|null => Filament::getTenant()?->getKey())
                 ->searchable()
                 ->required();
         }
@@ -78,6 +80,7 @@ final class WooStoreForm
         return TextInput::make('tenant_id')
             ->label(__('Tenant ID'))
             ->numeric()
+            ->default(fn (): int|string|null => Filament::getTenant()?->getKey())
             ->required();
     }
 }

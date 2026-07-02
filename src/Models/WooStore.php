@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Madbox99\FilamentWooCommerce\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -45,6 +46,25 @@ final class WooStore extends Model
             'consumer_secret' => 'encrypted',
             'last_sync_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Scope the query to a single tenant.
+     *
+     * A null id leaves the query untouched, so non-tenant contexts (queue
+     * jobs, or panels without tenancy) keep seeing every store. This mirrors
+     * the host app's tenant scoping without requiring a `team` relationship,
+     * which is why the resource opts out of Filament's auto tenant scoping.
+     *
+     * @param  Builder<WooStore>  $query
+     * @return Builder<WooStore>
+     */
+    public function scopeForTenant(Builder $query, int|string|null $tenantId): Builder
+    {
+        return $query->when(
+            $tenantId !== null,
+            fn (Builder $scoped): Builder => $scoped->where($this->qualifyColumn('tenant_id'), $tenantId),
+        );
     }
 
     public function mappings(): HasMany
